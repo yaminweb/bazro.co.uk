@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bazro Fresh – Order Now</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red:#D0021B; --green:#2D6A2D; --green-mid:#3d8c3d; --green-light:#5aab5a;
+  --green-pale:#f2f8f2; --dark:#111; --mid:#5a5a5a;
+  --border:#dde8dd; --shadow:0 24px 72px rgba(0,0,0,0.13); --shadow-sm:0 4px 20px rgba(0,0,0,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--green-pale);color:var(--dark);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 60% at 10% 10%,rgba(45,106,45,.09) 0%,transparent 70%),radial-gradient(ellipse 60% 80% at 90% 90%,rgba(76,175,80,.07) 0%,transparent 70%);pointer-events:none;z-index:0;}
+
+header{position:sticky;top:0;z-index:100;background:#000;padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 24px rgba(0,0,0,0.4);}
+.logo{display:flex;align-items:baseline;gap:8px;}
+.logo-bazro{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:900;color:var(--red);letter-spacing:-1px;}
+.logo-fresh{font-size:.68rem;font-weight:600;color:#666;letter-spacing:4px;text-transform:uppercase;}
+.admin-btn{background:transparent;border:1px solid #333;color:#666;padding:7px 18px;border-radius:20px;font-size:.72rem;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:2px;text-transform:uppercase;transition:all .25s;}
+.admin-btn:hover{border-color:var(--red);color:var(--red);}
+
+.page{display:none;}
+.page.active{display:block;}
+
+#order-page{position:relative;z-index:5;padding:70px 20px 100px;display:flex;flex-direction:column;align-items:center;}
+.eyebrow{font-size:.68rem;letter-spacing:5px;text-transform:uppercase;color:var(--green);font-weight:600;margin-bottom:10px;opacity:0;animation:fadeUp .6s .1s forwards;}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(2.4rem,6vw,3.8rem);font-weight:900;text-align:center;line-height:1.05;margin-bottom:12px;opacity:0;animation:fadeUp .6s .2s forwards;}
+.hero-title .accent{color:var(--green);font-style:italic;}
+.hero-desc{font-size:1rem;color:var(--mid);text-align:center;max-width:380px;line-height:1.65;margin-bottom:52px;opacity:0;animation:fadeUp .6s .3s forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+.product-card{background:#fff;border-radius:32px;box-shadow:var(--shadow);width:100%;max-width:520px;overflow:hidden;opacity:0;animation:fadeUp .7s .4s forwards;}
+
+.img-wrap{position:relative;height:300px;background:#0e1e0e;overflow:hidden;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
+.img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .5s ease,filter .3s;filter:brightness(.88) saturate(1.15);pointer-events:none;}
+.img-wrap:hover img{transform:scale(1.05);filter:brightness(.95) saturate(1.2);}
+.img-wrap:active img{transform:scale(.98);}
+.qty-badge{position:absolute;top:18px;right:18px;background:var(--red);color:#fff;font-weight:900;font-size:1.5rem;width:58px;height:58px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(208,2,27,.55);pointer-events:none;transition:transform .1s;}
+.qty-badge.pop{animation:bigPop .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes bigPop{0%{transform:scale(1)}45%{transform:scale(1.5)}100%{transform:scale(1)}}
+.img-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.72));padding:40px 20px 18px;display:flex;flex-direction:column;align-items:center;pointer-events:none;}
+.img-overlay .prod-name{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:4px;}
+.img-overlay .tap-hint{font-size:.75rem;color:rgba(255,255,255,.7);letter-spacing:1px;}
+
+.card-body{padding:28px 28px 32px;}
+.qty-controls{display:flex;align-items:center;background:var(--green-pale);border-radius:16px;overflow:hidden;margin-bottom:20px;border:1.5px solid var(--border);}
+.qty-btn{background:none;border:none;width:54px;height:54px;font-size:1.6rem;cursor:pointer;color:var(--green-mid);transition:background .2s,color .2s;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.qty-btn:hover{background:var(--green);color:#fff;}
+.qty-display{flex:1;text-align:center;font-size:1.4rem;font-weight:700;color:var(--dark);font-family:'Playfair Display',serif;}
+.qty-label{font-size:.72rem;color:var(--mid);letter-spacing:1px;text-transform:uppercase;display:block;margin-top:-2px;}
+
+/* PRICE BREAKDOWN */
+.price-breakdown{background:var(--green-pale);border-radius:16px;padding:16px 18px;margin-bottom:20px;border:1.5px solid var(--border);}
+.price-line{display:flex;justify-content:space-between;align-items:center;font-size:.88rem;color:var(--mid);padding:3px 0;}
+.price-line.delivery-line{border-top:1px dashed var(--border);margin-top:6px;padding-top:8px;}
+.price-line.total-line{border-top:2px solid var(--border);margin-top:6px;padding-top:8px;}
+.price-line .label{font-weight:500;}
+.price-line .val{font-weight:600;color:var(--dark);}
+.price-line.total-line .label{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--dark);}
+.price-line.total-line .val{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--green);}
+
+/* DELIVERY BADGE */
+.delivery-calc-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.delivery-spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.delivery-spinner.show{display:block;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.delivery-note{font-size:.72rem;color:var(--mid);margin-bottom:16px;padding:8px 12px;background:#fffbf0;border-radius:10px;border:1px solid #ffe9a0;display:none;}
+.delivery-note.show{display:block;}
+
+.form-group{margin-bottom:14px;}
+.form-group label{display:block;font-size:.75rem;font-weight:600;color:var(--mid);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.form-group input{width:100%;padding:14px 18px;border:1.5px solid var(--border);border-radius:14px;font-size:.95rem;font-family:'DM Sans',sans-serif;background:#fff;color:var(--dark);transition:border-color .2s,box-shadow .2s;outline:none;}
+.form-group input:focus{border-color:var(--green-mid);box-shadow:0 0 0 4px rgba(45,106,45,.1);}
+.form-group input::placeholder{color:#bbb;}
+
+.order-btn{width:100%;padding:17px;background:linear-gradient(135deg,var(--green) 0%,var(--green-mid) 100%);color:#fff;border:none;border-radius:16px;font-size:1.05rem;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;letter-spacing:.5px;margin-top:8px;transition:transform .2s,box-shadow .2s,opacity .2s;box-shadow:0 8px 28px rgba(45,106,45,.4);}
+.order-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 12px 32px rgba(45,106,45,.5);}
+.order-btn:disabled{opacity:.55;cursor:not-allowed;}
+
+.success-wrap{display:none;flex-direction:column;align-items:center;text-align:center;padding:44px 28px;}
+.success-wrap.show{display:flex;}
+.success-icon{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-light));display:flex;align-items:center;justify-content:center;font-size:2.2rem;margin-bottom:20px;box-shadow:0 8px 28px rgba(45,106,45,.4);animation:bigPop .5s cubic-bezier(.34,1.56,.64,1);}
+.success-wrap h3{font-family:'Playfair Display',serif;font-size:1.7rem;margin-bottom:10px;color:var(--green);}
+.success-wrap p{color:var(--mid);line-height:1.7;margin-bottom:26px;font-size:.95rem;}
+.new-order-btn{background:var(--green);color:#fff;border:none;padding:13px 36px;border-radius:14px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;font-size:.95rem;transition:background .2s;}
+.new-order-btn:hover{background:var(--green-mid);}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:24px;padding:36px;width:90%;max-width:400px;box-shadow:0 32px 80px rgba(0,0,0,.25);animation:fadeUp .3s ease;}
+.modal h3{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:6px;}
+.modal p{color:var(--mid);font-size:.88rem;margin-bottom:22px;}
+.modal input{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:12px;font-size:1rem;font-family:'DM Sans',sans-serif;outline:none;margin-bottom:14px;transition:border-color .2s;}
+.modal input:focus{border-color:var(--green);}
+.modal-btns{display:flex;gap:10px;}
+.modal-login{flex:1;padding:12px;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer;font-size:.95rem;}
+.modal-cancel{flex:1;padding:12px;background:#f5f5f5;color:var(--mid);border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;font-size:.95rem;}
+.modal-error{color:var(--red);font-size:.82rem;margin-top:-8px;margin-bottom:10px;display:none;}
+
+/* ADMIN */
+#admin-page{position:relative;z-index:5;padding:40px 20px 80px;max-width:960px;margin:0 auto;}
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;}
+.admin-header h2{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;}
+.admin-header h2 span{color:var(--green);}
+.logout-btn{background:#f5f5f5;border:none;padding:8px 20px;border-radius:20px;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:.82rem;color:var(--mid);letter-spacing:1px;text-transform:uppercase;transition:all .2s;}
+.logout-btn:hover{background:var(--red);color:#fff;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px;}
+.stat-card{background:#fff;border-radius:20px;padding:20px 22px;box-shadow:var(--shadow-sm);}
+.stat-label{font-size:.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--mid);margin-bottom:6px;}
+.stat-val{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:var(--dark);}
+.stat-val.green{color:var(--green);}
+.orders-table-wrap{background:#fff;border-radius:24px;box-shadow:var(--shadow-sm);overflow:hidden;}
+.table-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.table-header h3{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;}
+.refresh-btn{background:var(--green-pale);border:1px solid var(--border);padding:7px 16px;border-radius:20px;font-family:'DM Sans',sans-serif;font-size:.78rem;cursor:pointer;color:var(--green);font-weight:600;transition:all .2s;}
+.refresh-btn:hover{background:var(--green);color:#fff;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:12px 16px;text-align:left;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--mid);border-bottom:1px solid var(--border);background:var(--green-pale);}
+tbody tr{border-bottom:1px solid #f0f0f0;transition:background .15s;}
+tbody tr:hover{background:var(--green-pale);}
+tbody tr:last-child{border-bottom:none;}
+tbody td{padding:13px 16px;font-size:.88rem;color:var(--dark);}
+.badge-qty{background:var(--green-pale);color:var(--green);font-weight:700;padding:3px 10px;border-radius:20px;font-size:.8rem;}
+.badge-price{font-weight:700;color:var(--green);font-family:'Playfair Display',serif;}
+.badge-delivery{background:#fff8e1;color:#b8860b;font-weight:600;padding:3px 9px;border-radius:20px;font-size:.78rem;}
+.empty-row td,.loading-row td{text-align:center;padding:40px;color:#bbb;font-size:.9rem;}
+
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--dark);color:#fff;padding:12px 24px;border-radius:50px;font-size:.88rem;font-weight:500;box-shadow:0 8px 32px rgba(0,0,0,.25);z-index:9999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.success{background:var(--green);}
+.toast.error{background:var(--red);}
+
+@media(max-width:540px){
+  header{padding:0 16px;}
+  .stats-row{grid-template-columns:1fr 1fr;}
+  #admin-page{padding:20px 12px 60px;}
+  .admin-header h2{font-size:1.4rem;}
+  thead th,tbody td{padding:10px 10px;font-size:.78rem;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-bazro">Bazro</span>
+    <span class="logo-fresh">Fresh</span>
+  </div>
+  <button class="admin-btn" onclick="openAdminModal()">Admin ↗</button>
+</header>
+
+<!-- ═══════════════ ORDER PAGE ═══════════════ -->
+<div id="order-page" class="page active">
+  <p class="eyebrow">🌿 Farm to Table</p>
+  <h1 class="hero-title">Fresh <span class="accent">Rape Vegetable</span><br>Bundles</h1>
+  <p class="hero-desc">Crisp, locally grown rape vegetable bundles. £2 each. Delivery charged at £1/mile from Camborne.</p>
+
+  <div class="product-card">
+    <div id="order-form-view">
+
+      <!-- Tap image to add bundles -->
+      <div class="img-wrap" id="imgWrap" onclick="addBundle()">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Brassica_napus_2.jpg/640px-Brassica_napus_2.jpg"
+             alt="Fresh Rape Vegetable"
+             onerror="this.src='https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80'">
+        <div class="qty-badge" id="qtyBadge">0</div>
+        <div class="img-overlay">
+          <span class="prod-name">Rape Vegetable Bundle — £2</span>
+          <span class="tap-hint">👆 Tap image to add a bundle</span>
+        </div>
+      </div>
+
+      <div class="card-body">
+
+        <!-- Quantity buttons -->
+        <div class="qty-controls">
+          <button class="qty-btn" onclick="changeQty(-1)">−</button>
+          <div class="qty-display">
+            <span id="qtyNumber">0</span>
+            <span class="qty-label">Bundles</span>
+          </div>
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+
+        <!-- Price breakdown -->
+        <div class="price-breakdown">
+          <div class="price-line">
+            <span class="label">Bundles (<span id="pbCount">0</span> × £2)</span>
+            <span class="val">£<span id="pbBundles">0.00</span></span>
+          </div>
+          <div class="price-line delivery-line">
+            <span class="label" id="deliveryLabel">Delivery</span>
+            <div class="delivery-calc-row">
+              <div class="delivery-spinner" id="deliverySpinner"></div>
+              <span class="val" id="pbDelivery">—</span>
+            </div>
+          </div>
+          <div class="price-line total-line">
+            <span class="label">Total</span>
+            <span class="val">£<span id="pbTotal">—</span></span>
+          </div>
+        </div>
+
+        <p class="delivery-note" id="deliveryNote"></p>
+
+        <!-- Customer fields -->
+        <div class="form-group">
+          <label>Your Name *</label>
+          <input type="text" id="custName" placeholder="Full name" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="custPhone" placeholder="e.g. 07700 900000" autocomplete="tel">
+        </div>
+        <div class="form-group">
+          <label>Delivery Address <small style="font-weight:400;color:#aaa">(leave blank = collection)</small></label>
+          <input type="text" id="custAddress" placeholder="Full postcode or address" autocomplete="street-address"
+            oninput="onAddressInput()" onblur="calcDelivery()">
+        </div>
+
+        <button class="order-btn" id="placeOrderBtn" onclick="placeOrder()">Place Order →</button>
+      </div>
+    </div>
+
+    <!-- Success screen -->
+    <div class="success-wrap" id="successView">
+      <div class="success-icon">✓</div>
+      <h3>Order Placed!</h3>
+      <p id="successMsg">Your order has been received.</p>
+      <button class="new-order-btn" onclick="resetOrder()">Place Another Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ ADMIN PAGE ═══════════════ -->
+<div id="admin-page" class="page">
+  <div class="admin-header">
+    <h2>Orders <span>Dashboard</span></h2>
+    <button class="logout-btn" onclick="logout()">← Back</button>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-val" id="statOrders">—</div></div>
+    <div class="stat-card"><div class="stat-label">Total Bundles</div><div class="stat-val green" id="statBundles">—</div></div>
+    <div class="stat-card"><div class="stat-label">Bundle Revenue</div><div class="stat-val green" id="statRevenue">—</div></div>
+    <div class="stat-card"><div class="stat-label">Total inc. Delivery</div><div class="stat-val green" id="statTotal">—</div></div>
+  </div>
+  <div class="orders-table-wrap">
+    <div class="table-header">
+      <h3>All Orders</h3>
+      <button class="refresh-btn" onclick="loadAdminOrders()">↻ Refresh</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Date &amp; Time</th><th>Name</th><th>Phone</th>
+            <th>Address</th><th>Qty</th><th>Bundles</th><th>Delivery</th><th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody">
+          <tr class="loading-row"><td colspan="9">Loading orders…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN LOGIN MODAL -->
+<div class="modal-bg" id="adminModal">
+  <div class="modal">
+    <h3>Admin Access</h3>
+    <p>Enter your password to view the orders dashboard.</p>
+    <input type="password" id="adminPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()">
+    <p class="modal-error" id="loginError">Incorrect password. Try again.</p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeAdminModal()">Cancel</button>
+      <button class="modal-login" onclick="doLogin()">Login →</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────
+const SHEET_URL      = "https://script.google.com/macros/s/AKfycbzDpTQZClkTO59mL6VpLJ-oGt1fcrYXejY_p8UZmUPysY01QhOoWqh0ABg_v2PgUVjVBA/exec";
+const ADMIN_PASSWORD = "Yamin@83";
+const PRICE_PER_BUNDLE     = 2;    // £
+const DELIVERY_RATE_PER_MILE = 1;  // £ per mile
+const BASE_POSTCODE = "TR14 8AT";  // 9A Commercial Street, Camborne
+
+// ── STATE ─────────────────────────────────────────────────────────
+let qty            = 0;
+let deliveryCharge = 0;          // £
+let deliveryMiles  = 0;
+let submitting     = false;      // prevent double-submit
+let deliveryTimer  = null;
+
+// ── QTY ──────────────────────────────────────────────────────────
+function addBundle() {
+  qty++;
+  updateQty();
+  animateBadge();
+}
+function changeQty(d) {
+  qty = Math.max(0, qty + d);
+  updateQty();
+}
+function updateQty() {
+  document.getElementById('qtyBadge').textContent  = qty;
+  document.getElementById('qtyNumber').textContent = qty;
+  document.getElementById('pbCount').textContent   = qty;
+  document.getElementById('pbBundles').textContent = (qty * PRICE_PER_BUNDLE).toFixed(2);
+  recalcTotal();
+}
+function animateBadge() {
+  const b = document.getElementById('qtyBadge');
+  b.classList.remove('pop');
+  void b.offsetWidth;
+  b.classList.add('pop');
+}
+
+// ── PRICE TOTAL ──────────────────────────────────────────────────
+function recalcTotal() {
+  const bundleTotal = qty * PRICE_PER_BUNDLE;
+  const grand = bundleTotal + deliveryCharge;
+  document.getElementById('pbTotal').textContent =
+    (deliveryCharge > 0 || document.getElementById('custAddress').value.trim())
+      ? grand.toFixed(2)
+      : bundleTotal.toFixed(2);
+}
+
+// ── DELIVERY CALC ─────────────────────────────────────────────────
+function onAddressInput() {
+  // Reset delivery while typing
+  deliveryCharge = 0;
+  deliveryMiles  = 0;
+  document.getElementById('pbDelivery').textContent = '…';
+  document.getElementById('pbTotal').textContent = '…';
+  document.getElementById('deliveryNote').classList.remove('show');
+  clearTimeout(deliveryTimer);
+  deliveryTimer = setTimeout(calcDelivery, 900); // debounce
+}
+
+async function calcDelivery() {
+  const addr = document.getElementById('custAddress').value.trim();
+  if (!addr) {
+    deliveryCharge = 0;
+    deliveryMiles  = 0;
+    document.getElementById('pbDelivery').textContent = 'Free (collection)';
+    document.getElementById('deliveryLabel').textContent = 'Delivery';
+    document.getElementById('deliveryNote').classList.remove('show');
+    recalcTotal();
+    return;
+  }
+
+  const spinner = document.getElementById('deliverySpinner');
+  spinner.classList.add('show');
+  document.getElementById('pbDelivery').textContent = '';
+
+  try {
+    // Use postcodes.io to get coordinates for both postcodes, then calculate miles
+    // Extract postcode from address (last word that looks like a UK postcode)
+    const postcodeMatch = addr.match(/[A-Z]{1,2}[0-9]{1,2}[A-Z]?\s?[0-9][A-Z]{2}/i);
+    const destPostcode  = postcodeMatch ? postcodeMatch[0].replace(/\s/g,'') : addr;
+
+    // Get coordinates for destination
+    const destRes  = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(destPostcode)}`);
+    const destData = await destRes.json();
+
+    // Get coordinates for base
+    const baseRes  = await fetch(`https://api.postcodes.io/postcodes/TR148AT`);
+    const baseData = await baseRes.json();
+
+    if (destData.status !== 200 || baseData.status !== 200) {
+      throw new Error('Postcode not found');
+    }
+
+    const miles = haversineMiles(
+      baseData.result.latitude,  baseData.result.longitude,
+      destData.result.latitude,  destData.result.longitude
+    );
+
+    deliveryMiles  = parseFloat(miles.toFixed(1));
+    deliveryCharge = parseFloat((deliveryMiles * DELIVERY_RATE_PER_MILE).toFixed(2));
+
+    document.getElementById('pbDelivery').textContent = `£${deliveryCharge.toFixed(2)}`;
+    document.getElementById('deliveryLabel').textContent = `Delivery (${deliveryMiles} mi × £${DELIVERY_RATE_PER_MILE})`;
+
+    const note = document.getElementById('deliveryNote');
+    note.textContent = `📍 Distance from Camborne: approx ${deliveryMiles} miles — delivery charge £${deliveryCharge.toFixed(2)}`;
+    note.classList.add('show');
+
+  } catch(e) {
+    deliveryCharge = 0;
+    deliveryMiles  = 0;
+    document.getElementById('pbDelivery').textContent = 'Enter valid postcode';
+    document.getElementById('deliveryNote').classList.remove('show');
+    const note = document.getElementById('deliveryNote');
+    note.textContent = '⚠️ Could not calculate distance — please enter a full UK postcode (e.g. TR1 2AB)';
+    note.classList.add('show');
+  } finally {
+    spinner.classList.remove('show');
+    recalcTotal();
+  }
+}
+
+// Haversine formula → miles
+function haversineMiles(lat1, lon1, lat2, lon2) {
+  const R = 3958.8; // Earth radius in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── PLACE ORDER ──────────────────────────────────────────────────
+async function placeOrder() {
+  if (submitting) return;  // ← PREVENTS DUPLICATE SUBMISSIONS
+
+  const name    = document.getElementById('custName').value.trim();
+  const phone   = document.getElementById('custPhone').value.trim();
+  const address = document.getElementById('custAddress').value.trim();
+
+  if (!name)  { showToast('Please enter your name', 'error'); return; }
+  if (qty < 1){ showToast('Please select at least 1 bundle', 'error'); return; }
+
+  submitting = true;
+  const btn = document.getElementById('placeOrderBtn');
+  btn.disabled    = true;
+  btn.textContent = 'Placing Order…';
+
+  // Ensure delivery is calculated if address was entered
+  if (address && deliveryCharge === 0 && deliveryMiles === 0) {
+    await calcDelivery();
+  }
+
+  const bundleTotal = qty * PRICE_PER_BUNDLE;
+  const grandTotal  = bundleTotal + deliveryCharge;
+
+  const now = new Date();
+  const timestamp = now.toLocaleString('en-GB', {
+    day:'2-digit', month:'short', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+
+  // All values sent as plain numbers — no formulas in the sheet
+  const payload = {
+    action:        'addOrder',
+    timestamp,
+    name,
+    phone,
+    address:       address || 'Collection',
+    bundles:       qty,                               // plain integer
+    bundleTotal:   bundleTotal.toFixed(2),            // e.g. "18.00"
+    deliveryMiles: deliveryMiles,
+    deliveryCharge:deliveryCharge.toFixed(2),         // e.g. "5.00"
+    grandTotal:    grandTotal.toFixed(2)              // e.g. "23.00"
+  };
+
+  try {
+    await fetch(SHEET_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+
+    // Show success
+    document.getElementById('order-form-view').style.display = 'none';
+    const sv = document.getElementById('successView');
+    sv.classList.add('show');
+    document.getElementById('successMsg').innerHTML =
+      `Thank you <strong>${esc(name)}</strong>!<br>
+      <strong>${qty} bundle${qty>1?'s':''}</strong> × £${PRICE_PER_BUNDLE} = £${bundleTotal.toFixed(2)}<br>
+      ${deliveryCharge > 0 ? `Delivery (${deliveryMiles} mi): <strong>£${deliveryCharge.toFixed(2)}</strong><br>` : ''}
+      <strong style="font-size:1.1rem;color:var(--green)">Total: £${grandTotal.toFixed(2)}</strong><br>
+      <small style="color:#999;display:block;margin-top:10px">We'll contact you${phone ? ' on ' + esc(phone) : ''} shortly.</small>`;
+    showToast('Order placed successfully! ✓', 'success');
+
+  } catch(e) {
+    showToast('Network error — please try again', 'error');
+    btn.disabled    = false;
+    btn.textContent = 'Place Order →';
+    submitting = false;
+  }
+}
+
+function resetOrder() {
+  qty = 0; deliveryCharge = 0; deliveryMiles = 0; submitting = false;
+  updateQty();
+  ['custName','custPhone','custAddress'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pbDelivery').textContent = '—';
+  document.getElementById('pbTotal').textContent    = '—';
+  document.getElementById('deliveryNote').classList.remove('show');
+  document.getElementById('order-form-view').style.display = '';
+  document.getElementById('successView').classList.remove('show');
+  document.getElementById('placeOrderBtn').disabled    = false;
+  document.getElementById('placeOrderBtn').textContent = 'Place Order →';
+}
+
+// ── ADMIN MODAL ──────────────────────────────────────────────────
+function openAdminModal() {
+  document.getElementById('adminModal').classList.add('open');
+  document.getElementById('adminPass').value = '';
+  document.getElementById('loginError').style.display = 'none';
+  setTimeout(() => document.getElementById('adminPass').focus(), 100);
+}
+function closeAdminModal() { document.getElementById('adminModal').classList.remove('open'); }
+function doLogin() {
+  if (document.getElementById('adminPass').value === ADMIN_PASSWORD) {
+    closeAdminModal(); showPage('admin-page'); loadAdminOrders();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+function logout() { showPage('order-page'); }
+document.getElementById('adminModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('adminModal')) closeAdminModal();
+});
+
+// ── ADMIN DATA ───────────────────────────────────────────────────
+async function loadAdminOrders() {
+  const tbody = document.getElementById('ordersBody');
+  tbody.innerHTML = '<tr class="loading-row"><td colspan="9">Loading orders…</td></tr>';
+  try {
+    const res  = await fetch(SHEET_URL + '?action=getOrders&t=' + Date.now());
+    const data = await res.json();
+    const orders = (data && data.orders) ? data.orders : [];
+
+    if (!orders.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No orders yet.</td></tr>';
+      ['statOrders','statBundles','statRevenue','statTotal'].forEach(id =>
+        document.getElementById(id).textContent = id === 'statRevenue' || id === 'statTotal' ? '£0.00' : '0');
+      return;
+    }
+
+    let tOrders=0, tBundles=0, tRevenue=0, tTotal=0;
+    tbody.innerHTML = orders.map((o,i) => {
+      const b  = parseInt(o.bundles)        || 0;
+      const bt = parseFloat(o.bundleTotal)  || 0;
+      const dc = parseFloat(o.deliveryCharge)|| 0;
+      const gt = parseFloat(o.grandTotal)   || (bt + dc);
+      tOrders++; tBundles+=b; tRevenue+=bt; tTotal+=gt;
+      return `<tr>
+        <td style="color:#bbb;font-size:.78rem">${orders.length-i}</td>
+        <td style="font-size:.8rem;color:var(--mid)">${esc(o.timestamp||'—')}</td>
+        <td><strong>${esc(o.name||'—')}</strong></td>
+        <td>${esc(o.phone||'—')}</td>
+        <td style="max-width:150px;font-size:.82rem">${esc(o.address||'—')}</td>
+        <td><span class="badge-qty">${b}</span></td>
+        <td class="badge-price">£${bt.toFixed(2)}</td>
+        <td><span class="badge-delivery">${dc > 0 ? '£'+dc.toFixed(2)+' ('+( o.deliveryMiles||'?')+' mi)' : 'Collection'}</span></td>
+        <td class="badge-price">£${gt.toFixed(2)}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('statOrders').textContent  = tOrders;
+    document.getElementById('statBundles').textContent = tBundles;
+    document.getElementById('statRevenue').textContent = '£' + tRevenue.toFixed(2);
+    document.getElementById('statTotal').textContent   = '£' + tTotal.toFixed(2);
+
+  } catch(e) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="9">Could not load orders — check your Apps Script setup.</td></tr>`;
+  }
+}
+
+// ── UTILS ────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type;
+  void t.offsetWidth; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3400);
+}
+</script>
+
+<!--
+╔══════════════════════════════════════════════════════════════════╗
+║  GOOGLE APPS SCRIPT — REPLACE YOUR ENTIRE SCRIPT WITH THIS      ║
+╚══════════════════════════════════════════════════════════════════╝
+
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data  = JSON.parse(e.postData.contents);
+
+  if (data.action === 'addOrder') {
+    // Write headers if sheet is empty
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow([
+        'Timestamp','Name','Phone','Address',
+        'Bundles','Bundle Total (£)','Delivery Miles','Delivery Charge (£)','Grand Total (£)'
+      ]);
+    }
+    // All plain values — NO formulas — this fixes the #NUM! error
+    sheet.appendRow([
+      data.timestamp,
+      data.name,
+      data.phone,
+      data.address,
+      Number(data.bundles),
+      Number(data.bundleTotal),
+      Number(data.deliveryMiles),
+      Number(data.deliveryCharge),
+      Number(data.grandTotal)
+    ]);
+  }
+
+  return ContentService
+    .createTextOutput(JSON.stringify({status:'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  if (e.parameter.action === 'getOrders') {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var rows  = sheet.getDataRange().getValues();
+    var orders = [];
+    for (var i = 1; i < rows.length; i++) {
+      orders.unshift({
+        timestamp:      rows[i][0],
+        name:           rows[i][1],
+        phone:          rows[i][2],
+        address:        rows[i][3],
+        bundles:        rows[i][4],
+        bundleTotal:    rows[i][5],
+        deliveryMiles:  rows[i][6],
+        deliveryCharge: rows[i][7],
+        grandTotal:     rows[i][8]
+      });
+    }
+    return ContentService
+      .createTextOutput(JSON.stringify({orders: orders}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+╔══════════════════════════════════════════════════════════════════╗
+║  OPTIONAL SMS via Twilio (add inside doPost after appendRow):    ║
+╚══════════════════════════════════════════════════════════════════╝
+
+  var twilioSid   = 'YOUR_SID';
+  var twilioToken = 'YOUR_TOKEN';
+  var fromNum     = 'YOUR_TWILIO_NUMBER';  // e.g. +14155552671
+  if (data.phone) {
+    var smsBody = 'Hi ' + data.name + '! Your Bazro Fresh order: '
+      + data.bundles + ' bundle(s) = £' + data.bundleTotal
+      + (Number(data.deliveryCharge)>0 ? ', delivery £'+data.deliveryCharge : '')
+      + '. Total: £' + data.grandTotal + '. We will be in touch soon!';
+    UrlFetchApp.fetch(
+      'https://api.twilio.com/2010-04-01/Accounts/'+twilioSid+'/Messages.json',
+      { method:'post',
+        headers:{ Authorization:'Basic '+Utilities.base64Encode(twilioSid+':'+twilioToken) },
+        payload:{ To:data.phone, From:fromNum, Body:smsBody }
+      }
+    );
+  }
+-->
+</body>
+</html>
